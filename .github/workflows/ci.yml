@@ -3,6 +3,18 @@ on: [push, pull_request, workflow_dispatch]
 permissions:
   contents: read
 jobs:
+  ffmpeg-windows:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64 make
+      - name: Build minimal Windows remuxer with source and licenses
+        run: CLEARCAST_FFMPEG_TARGET=windows scripts/build-ffmpeg.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clearcast-ffmpeg-windows
+          path: dist/ffmpeg-windows
+          if-no-files-found: error
   linux:
     runs-on: ubuntu-24.04
     steps:
@@ -25,6 +37,7 @@ jobs:
           name: clearcast-linux-x64-unbundled
           path: target/release/clearcast
   windows:
+    needs: ffmpeg-windows
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
@@ -54,6 +67,24 @@ jobs:
       - run: cargo check --locked --all-targets
       - run: cargo test --locked --test config_and_recovery
       - run: cargo build --locked --release
+      - uses: actions/download-artifact@v4
+        with:
+          name: clearcast-ffmpeg-windows
+          path: dist/ffmpeg-windows
+      - name: Build and test bundled Windows setup
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          $env:Path = "${env:ProgramFiles(x86)}\NSIS;$env:Path"
+          ./scripts/package-windows.ps1 -SkipBuild
+          Compress-Archive -Path dist/windows/app/* -DestinationPath dist/Clearcast-0.1.0-windows-x64-portable.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clearcast-windows-x64-setup
+          path: |
+            dist/Clearcast-0.1.0-windows-x64-setup.exe
+            dist/Clearcast-0.1.0-windows-x64-portable.zip
+          if-no-files-found: error
       - uses: actions/upload-artifact@v4
         with:
           name: clearcast-windows-x64-unbundled

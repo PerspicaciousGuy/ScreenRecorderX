@@ -8,6 +8,15 @@ targets are goals, not measured guarantees; see [validation](docs/VALIDATION.md)
 
 ## Run
 
+For Windows, the `clearcast-windows-x64-setup` artifact from a successful
+[GitHub Actions build](https://github.com/PerspicaciousGuy/ScreenRecorderX/actions)
+contains an installer and portable ZIP with GStreamer and FFmpeg included.
+Install the setup, then launch Clearcast from the Start menu. No separate
+GStreamer or FFmpeg installation is needed. For the portable version, extract
+the entire ZIP and run `bin/clearcast.exe`; keep its adjacent folders together.
+
+The following instructions are for building/running from source:
+
 Install Rust stable, GStreamer 1.22+ and the platform media plugins, plus FFmpeg.
 Detailed Windows/Linux instructions are in [BUILD.md](docs/BUILD.md).
 

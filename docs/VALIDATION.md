@@ -22,6 +22,9 @@ it is not a self-contained AppImage.
 
 ## Automated checks
 
+- Windows packaging stages a private runtime, resolves DLL imports, and records
+  synthetic H.264/AAC plus MP4 remuxing with SDK PATH entries removed. CI uploads
+  the bundled NSIS setup and portable ZIP after this check passes.
 - Linux and Windows compilation, rustfmt, clippy and ordinary tests.
 - Output scaling, odd dimensions, invalid region arithmetic and invalid gain.
 - Settings replacement, instance locking, restart discovery and malformed journals.
