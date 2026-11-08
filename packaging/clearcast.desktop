@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Clearcast
+Comment=Record your screen with hardware acceleration
+Exec=clearcast
+Icon=clearcast
+Categories=AudioVideo;Recorder;
+Terminal=false
+StartupWMClass=Clearcast
