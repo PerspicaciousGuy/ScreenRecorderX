@@ -48,6 +48,8 @@ function Copy-RuntimeDependencies([string[]]$Files, [string]$RuntimeBin, [string
             if (Test-Path -LiteralPath $source -PathType Leaf) {
                 Copy-Item -LiteralPath $source -Destination $Destination -Force
                 $pending.Enqueue($source)
+            } elseif (Test-Path -LiteralPath (Join-Path $Destination $name) -PathType Leaf) {
+                $pending.Enqueue((Join-Path $Destination $name))
             } elseif ($name -notmatch '^(api-ms-|ext-ms-)' -and
                       !(Test-Path -LiteralPath (Join-Path $env:SystemRoot "System32\$name"))) {
                 throw "Missing dependency $name required by $file"
