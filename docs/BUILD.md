@@ -79,12 +79,49 @@ dependency collection to linuxdeploy. Review collected plugins and license/sourc
 materials before release. System portal services, GPU drivers and glibc remain
 host dependencies.
 
-For Windows, stage an audited GStreamer runtime in `dist/windows/app/gstreamer`
-and minimal LGPL FFmpeg at `dist/windows/app/ffmpeg.exe`. Run
-`scripts/package-windows.ps1` and NSIS with `packaging/windows.nsi`. The script
-checks for required inputs and refuses GPL/nonfree FFmpeg builds. The installer
-contains the runtime tree and third-party materials supplied in staging.
+### Windows setup (bundled dependencies)
 
-CI compiles and tests both platforms and uploads **unbundled development
-binaries**. A release requires the runtime/source/license staging described
-above, Windows signing if desired, and the physical hardware validation matrix.
+End users install one setup; GStreamer and FFmpeg do not need separate installs
+or PATH changes. A portable ZIP contains the same application payload.
+
+CI builds a minimal LGPL Windows FFmpeg from pinned source on Linux using MinGW,
+then packages it alongside the Windows application and selected GStreamer plugins.
+The `clearcast-windows-x64-setup` artifact contains both downloads. The installer
+works offline and installs per-user without administrator privileges. GPU drivers
+and Windows graphics/audio components remain OS dependencies.
+
+To build it yourself, prepare the Windows SDK described above and install NSIS.
+On Linux, build the Windows remuxer:
+
+```sh
+sudo apt-get install gcc-mingw-w64-x86-64 make
+CLEARCAST_FFMPEG_TARGET=windows scripts/build-ffmpeg.sh
+bash scripts/stage-gstreamer-sources.sh
+```
+
+Copy the complete `dist/ffmpeg-windows` directory to the Windows build machine,
+then run:
+
+```powershell
+./scripts/package-windows.ps1
+# Optional: -GStreamerRoot C:/gstreamer/1.0/msvc_x86_64
+# Optional: -FFmpegRoot D:/build/ffmpeg-windows
+```
+
+The script builds Rust, stages selected runtime plugins and their recursively
+resolved DLL dependencies, includes GStreamer's license materials plus source/build
+references, and includes FFmpeg's source archive, configuration and license.
+It also bundles the x64 Visual C++ runtime DLLs from Visual Studio's redistributable
+directory (override with `-MsvcRedistRoot`). It refuses an existing stage directory to prevent obsolete files leaking into
+new packages; use a new `-Stage` path for another build. `-SkipBuild` reuses an
+existing release binary; `-SkipInstaller` produces and tests only the payload.
+
+The private runtime preserves GStreamer's relocatable `bin`, `lib` and `libexec`
+layout. The Start menu shortcut launches `bin/clearcast.exe`. The payload is
+tested with a fresh plugin cache and SDK/plugin paths removed from the environment:
+an explicit synthetic recording must produce an H.264/AAC MP4 using bundled FFmpeg.
+This does not demonstrate hardware capture performance or a clean-machine install.
+
+CI also uploads unbundled development binaries. Public releases still require
+review of third-party source/license materials for the actual collected DLLs,
+Windows signing if desired, and the physical hardware validation matrix.

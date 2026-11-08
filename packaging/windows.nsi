@@ -1,4 +1,6 @@
 Unicode true
+!include "x64.nsh"
+SetCompressor /SOLID lzma
 !include "MUI2.nsh"
 !ifndef STAGE
   !error "Set /DSTAGE to the audited application staging directory"
@@ -16,11 +18,15 @@ RequestExecutionLevel user
 !insertmacro MUI_UNPAGE_INSTFILES
 !insertmacro MUI_LANGUAGE "English"
 Section "Clearcast"
+  ${IfNot} ${RunningX64}
+    MessageBox MB_ICONSTOP "Clearcast requires 64-bit Windows."
+    Abort
+  ${EndIf}
   SetOutPath "$INSTDIR"
-  File /r /x "gstreamer" "${STAGE}\*"
+  File /r "${STAGE}\*"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateDirectory "$SMPROGRAMS\Clearcast"
-  CreateShortcut "$SMPROGRAMS\Clearcast\Clearcast.lnk" "$INSTDIR\clearcast.exe"
+  CreateShortcut "$SMPROGRAMS\Clearcast\Clearcast.lnk" "$INSTDIR\bin\clearcast.exe"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearcast" "DisplayName" "Clearcast"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Clearcast" "UninstallString" '$"$INSTDIR\Uninstall.exe$"'
 SectionEnd
