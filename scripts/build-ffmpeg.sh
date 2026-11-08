@@ -29,7 +29,7 @@ cd "$build"
 "$vendor/ffmpeg-$version/configure" "${configure_target[@]}" --prefix="$stage" --disable-autodetect --disable-everything \
     --disable-network --disable-doc --disable-debug --disable-x86asm \
     --enable-small --enable-ffmpeg --enable-protocol=file \
-    --enable-demuxer=matroska --enable-muxer=mp4 \
+    --enable-demuxer=matroska,mov --enable-muxer=mp4 \
     --enable-parser=h264,aac,hevc --enable-decoder=h264,aac \
     --enable-bsf=aac_adtstoasc,extract_extradata \
     --enable-filter=anull,null > "$vendor/ffmpeg-configure.log"

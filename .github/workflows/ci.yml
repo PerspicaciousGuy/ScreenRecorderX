@@ -7,10 +7,18 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: media-cache
+        with:
+          path: dist/ffmpeg-windows
+          key: windows-media-${{ hashFiles('scripts/build-ffmpeg.sh', 'scripts/stage-gstreamer-sources.sh') }}
       - run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64 make
+        if: steps.media-cache.outputs.cache-hit != 'true'
       - name: Build minimal Windows remuxer with source and licenses
+        if: steps.media-cache.outputs.cache-hit != 'true'
         run: CLEARCAST_FFMPEG_TARGET=windows scripts/build-ffmpeg.sh
       - name: Collect pinned GStreamer sources and build materials
+        if: steps.media-cache.outputs.cache-hit != 'true'
         run: bash scripts/stage-gstreamer-sources.sh
       - uses: actions/upload-artifact@v4
         with:
@@ -73,6 +81,10 @@ jobs:
         with:
           name: clearcast-ffmpeg-windows
           path: dist/ffmpeg-windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clearcast-windows-x64-unbundled
+          path: target/release/clearcast.exe
       - name: Build and test bundled Windows setup
         shell: pwsh
         run: |
@@ -80,6 +92,14 @@ jobs:
           $env:Path = "${env:ProgramFiles(x86)}\NSIS;$env:Path"
           ./scripts/package-windows.ps1 -SkipBuild
           Compress-Archive -Path dist/windows/app/* -DestinationPath dist/Clearcast-0.1.0-windows-x64-portable.zip
+      - name: Test installed payload in a path containing spaces
+        shell: pwsh
+        run: |
+          $install = Join-Path $env:RUNNER_TEMP 'Clearcast install test'
+          $setup = (Resolve-Path dist/Clearcast-0.1.0-windows-x64-setup.exe).Path
+          $process = Start-Process -FilePath $setup -ArgumentList "/S /D=$install" -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Setup failed: $($process.ExitCode)" }
+          ./scripts/test-windows-package.ps1 -Stage $install
       - uses: actions/upload-artifact@v4
         with:
           name: clearcast-windows-x64-setup
@@ -87,7 +107,3 @@ jobs:
             dist/Clearcast-0.1.0-windows-x64-setup.exe
             dist/Clearcast-0.1.0-windows-x64-portable.zip
           if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: clearcast-windows-x64-unbundled
-          path: target/release/clearcast.exe
