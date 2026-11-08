@@ -173,7 +173,13 @@ impl Store {
                 "MP4 conversion failed; MKV retained. {tail}"
             );
             ensure!(temp.metadata()?.len() > 0, "FFmpeg produced an empty file");
-            File::open(&temp)?.sync_all()?;
+            // Windows FlushFileBuffers requires a handle opened for writing.
+            OpenOptions::new()
+                .read(true)
+                .write(true)
+                .open(&temp)?
+                .sync_all()
+                .context("Cannot sync finalized MP4; MKV retained")?;
             // Persist without overwriting a file created while FFmpeg was running.
             // tempfile uses the platform's no-clobber publication primitive.
             tempfile::TempPath::try_from_path(&temp)?
