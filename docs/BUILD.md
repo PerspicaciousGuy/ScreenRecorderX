@@ -96,6 +96,7 @@ On Linux, build the Windows remuxer:
 ```sh
 sudo apt-get install gcc-mingw-w64-x86-64 make
 CLEARCAST_FFMPEG_TARGET=windows scripts/build-ffmpeg.sh
+bash scripts/stage-gstreamer-sources.sh
 ```
 
 Copy the complete `dist/ffmpeg-windows` directory to the Windows build machine,
@@ -110,7 +111,8 @@ then run:
 The script builds Rust, stages selected runtime plugins and their recursively
 resolved DLL dependencies, includes GStreamer's license materials plus source/build
 references, and includes FFmpeg's source archive, configuration and license.
-It refuses an existing stage directory to prevent obsolete files leaking into
+It also bundles the x64 Visual C++ runtime DLLs from Visual Studio's redistributable
+directory (override with `-MsvcRedistRoot`). It refuses an existing stage directory to prevent obsolete files leaking into
 new packages; use a new `-Stage` path for another build. `-SkipBuild` reuses an
 existing release binary; `-SkipInstaller` produces and tests only the payload.
 

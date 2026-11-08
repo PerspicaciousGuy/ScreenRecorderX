@@ -27,11 +27,11 @@ try {
         }
     }
     # Explicit synthetic software diagnostic exercises H.264/AAC and bundled remuxing.
-    & (Join-Path $bin 'clearcast.exe') diagnose --software --seconds 3 --pause --output $temp
+    & (Join-Path $bin 'clearcast.exe') diagnose --software --seconds 3 --pause --output $temp | Out-Host
     if ($LASTEXITCODE -ne 0) { throw 'Bundled recording/remux smoke test failed' }
     $output = @(Get-ChildItem -LiteralPath $temp -Filter '*.mp4')
     if ($output.Count -ne 1 -or $output[0].Length -eq 0) { throw 'Bundled test produced no MP4' }
-    & (Join-Path $bin 'ffmpeg.exe') -v error -i $output[0].FullName -map 0:v:0 -map 0:a:0 -c copy -f mp4 (Join-Path $temp 'verified.mp4')
+    & (Join-Path $bin 'ffmpeg.exe') -v error -i $output[0].FullName -map 0:v:0 -map 0:a:0 -c copy -f mp4 (Join-Path $temp 'verified.mp4') | Out-Host
     if ($LASTEXITCODE -ne 0) { throw 'Bundled MP4 lacks readable video/audio streams' }
     Write-Output 'Bundled recording, pause/resume and MP4 remux passed without SDK paths'
 } finally {

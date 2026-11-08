@@ -10,6 +10,8 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64 make
       - name: Build minimal Windows remuxer with source and licenses
         run: CLEARCAST_FFMPEG_TARGET=windows scripts/build-ffmpeg.sh
+      - name: Collect pinned GStreamer sources and build materials
+        run: bash scripts/stage-gstreamer-sources.sh
       - uses: actions/upload-artifact@v4
         with:
           name: clearcast-ffmpeg-windows
